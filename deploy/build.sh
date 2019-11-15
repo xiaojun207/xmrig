@@ -3,7 +3,7 @@
 sudo yum install -y epel-release
 sudo yum install -y git make cmake gcc gcc-c++ libstdc++-static libuv-static hwloc-devel openssl-devel
 
-mkdir build && cd build
+mkdir build -p && cd build && rm ./* -rf
 cmake .. -DUV_LIBRARY=/usr/lib64/libuv.a
 make
 
