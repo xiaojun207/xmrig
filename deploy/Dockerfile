@@ -1,4 +1,4 @@
-FROM alpine
+FROM centos
 
 ADD . /app
 WORKDIR /app
