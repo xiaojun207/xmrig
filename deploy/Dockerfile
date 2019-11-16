@@ -1,16 +1,31 @@
-FROM          alpine:3.7 as build
+FROM  alpine:latest
 
-ENV           XMRIG_DIR /xmrig-cpu
-ENV           XMRIG_BUILD_DIR $XMRIG_DIR/build
+RUN   adduser -S -D -H -h /xmrig miner
 
-RUN           apk --no-cache add build-base cmake curl git libuv-dev
-# Use xmrig v2.4.2
-RUN           git clone https://github.com/xiaojun207/xmrig.git $XMRIG_DIR && cd $XMRIG_DIR
-RUN           mkdir $XMRIG_BUILD_DIR && cd $XMRIG_BUILD_DIR && \
-    cmake .. -DWITH_HTTPD=OFF && make
-RUN           mv $XMRIG_BUILD_DIR/xmrig /usr/bin/
+RUN   apk --no-cache add \
+        git \
+        cmake \
+        libuv-dev \
+        build-base \
+        openssl-dev \
+        libmicrohttpd-dev
 
-FROM          alpine:3.7
-RUN           apk --no-cache add libuv-dev
-COPY          --from=build /usr/bin/xmrig /usr/bin/
-ENTRYPOINT    ["xmrig"]
+RUN apk --no-cache add \
+    --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+    hwloc-dev
+
+RUN git clone https://github.com/xiaojun207/xmrig
+
+RUN cd xmrig && \
+    mkdir build && \
+      cmake -DCMAKE_BUILD_TYPE=Release . && \
+      make &&  rm -rf /xmrig/src
+
+RUN apk del build-base cmake git
+
+#COPY startup.sh /xmrig/startup.sh
+COPY  config.json /xmrig/config.json
+RUN  chown miner /xmrig /xmrig/config.json
+USER miner
+WORKDIR    /xmrig
+ENTRYPOINT  ["./xmrig"]
